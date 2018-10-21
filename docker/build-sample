@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "Docker Login"
+bash ./docker/docker-login.sh
+echo "Docker build image"
+docker build -f ./docker/Dockerfile -t sf/__NAME__:$1 .
+docker tag schsaagg/__NAME__:$1 sf/__NAME__:latest
+echo "Docker upload to docker hub"
+docker push sf/__NAME__:$1
+docker push sf/__NAME__:latest
+echo "Docker Logout"
+docker logout
