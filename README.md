@@ -4,6 +4,13 @@
 
 ---
 
+###### Docker including
+* richarvey/nginx-php-fpm:latest
+* redis:5.0-alpine
+* bitnami/mariadb:latest
+
+---
+
 To use it, simply:
 
 * git clone this repository
