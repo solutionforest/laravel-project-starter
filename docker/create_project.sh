@@ -33,7 +33,7 @@ sed "s/__NAME__/$1/g" temp.yml > temp2.yml
 sed "s/__PORT__/$2/g" temp2.yml > docker-compose.yml
 sed "s/__NAME__/$1/g" build-sample > build-image.sh
 
-echo "docker exec -it $1-web $@" > run.sh
+echo "docker exec -it $1-web \$@" > run.sh
 
 echo "change permission"
 chmod 755 run.sh
