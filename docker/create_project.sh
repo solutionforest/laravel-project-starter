@@ -5,6 +5,12 @@ if [ -z "$1" ]; then
     echo "$0 [project name]"
     exit 1
 fi
+
+if [ -z "$2" ]; then
+    echo "Please specify your project name (without space)"
+    echo "$0 [$1] [port]"
+    exit 1
+fi
 echo "Create Project [ $1 ] now"
 
 echo "Clean up files"
@@ -23,12 +29,15 @@ echo ${NEW_UUID}
 
 echo "Create a new docker-compose file"
 sed "s/__APP__KEY__/${NEW_UUID}/g" docker-compose-sample.yml > temp.yml
-sed "s/__NAME__/$1/g" temp.yml > docker-compose.yml
+sed "s/__NAME__/$1/g" temp.yml > temp2.yml
+sed "s/__PORT__/$2/g" temp2.yml > docker-compose.yml
 sed "s/__NAME__/$1/g" build-sample > build-image.sh
+
 echo "docker exec -it $1-web $@" > run.sh
 
+echo "change permission"
 chmod 755 run.sh
 chmod 755 build-image.sh
 
 echo "Clean up"
-rm temp.yml
+rm temp.yml temp2.yml

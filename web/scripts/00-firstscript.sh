@@ -4,4 +4,4 @@ echo "Start first script"
 #install new cron file
 
 # uncomment below script
-crontab -l | { cat; echo "* * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1"; } | crontab -
+crontab -l | { cat; echo "* * * * * cd /var/www/html/src && php artisan schedule:run >> /dev/null 2>&1"; } | crontab -

@@ -30,6 +30,8 @@ services:
       - front
       - back
     command: redis-server --requirepass sf_redis@__NAME__
+    depends_on:
+      - __NAME__-db
 
   __NAME__-web:
     image: richarvey/nginx-php-fpm:latest
@@ -41,7 +43,7 @@ services:
     environment:
       - VIRTUAL_HOST=domain_name1
       - RUN_SCRIPTS=1
-      - APP_NAME=Laravel
+      - APP_NAME=__NAME__
       - APP_ENV=local
       - APP_KEY=base64:__APP__KEY__
       - APP_DEBUG=true
@@ -78,11 +80,13 @@ services:
     networks:
       - front
       - back
+    command: ["./wait-for-database.sh", "__NAME__-db", "/start.sh"]
     depends_on:
       - __NAME__-db
 
-  # minio:
+  # __NAME__-minio:
   #   image: minio/minio
+  #   container_name: __NAME__-minio
   #   volumes:
   #     - ../storage:/export
   #   networks:
