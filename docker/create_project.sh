@@ -41,3 +41,5 @@ chmod 755 build-image.sh
 
 echo "Clean up"
 rm temp.yml temp2.yml
+rm -rf ../.git
+cd ../../ && mv laravel-project-starter $1
