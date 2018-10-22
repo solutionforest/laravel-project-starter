@@ -11,6 +11,15 @@
 
 ---
 
+###### Docker including
+* What we do?
+* When you create project , 
+* 1) create new docker-compose , update all related name
+* 2) rename the folder
+* 3) remove git ( you should create your own git )
+
+---
+
 To use it, simply:
 
 * git clone this repository
