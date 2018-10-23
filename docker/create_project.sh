@@ -14,7 +14,6 @@ fi
 echo "Create Project [ $1 ] now"
 
 echo "Clean up files"
-docker-compose kill
 rm -rf ../db
 rm docker-compose.yml
 rm run.sh
