@@ -41,3 +41,4 @@ web/scripts/*.sh
 docker/docker-compose.yml
 docker/run.sh
 docker/cleanup.sh
+docker/create_project_test.sh
