@@ -18,7 +18,7 @@ rm -rf ../db
 rm docker-compose.yml
 cp docker-compose-sample.yml docker-compose.yml
 
-echo "Generate 32bit APP_KEY for Laravel"
+echo "Generate APP_KEY for Laravel"
 NEW_UUID=$(openssl rand -base64 32 | tr -d '/')
 while [ ${#NEW_UUID} != 44 ] 
 do
@@ -43,3 +43,5 @@ echo "Clean up"
 rm temp.yml temp2.yml
 rm -rf ../.git
 cd ../../ && mv laravel-project-starter $1
+
+echo "Finish!!! Run the docker-compose and change your Laravel code in /web/src/"

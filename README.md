@@ -8,12 +8,12 @@
 * richarvey/nginx-php-fpm:latest
 * redis:5.0-alpine
 * bitnami/mariadb:latest
+* Dockerfile is base on "richarvey/nginx-php-fpm:latest" , optional to build your own image including your code.
 
 ---
 
-###### Docker including
-* What we do?
-* When you create project , 
+###### What we do?
+* When you create a laravel project, it is quite annoying with the AppKey, database, etc. We simply it in one script, and using Docker.
 * 1) create new docker-compose , update all related name
 * 2) rename the folder
 * 3) remove git ( you should create your own git )
