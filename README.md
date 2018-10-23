@@ -1,6 +1,7 @@
 # Laravel Start Kit
 ### A simple and easy to create a Laravel Project with docker
 ###### We are using latest Laravel version 5.7.*
+* This repo including Laravel-admin https://github.com/z-song/laravel-admin
 
 ---
 
