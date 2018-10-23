@@ -40,3 +40,4 @@ web/scripts/*.sh
 
 docker/docker-compose.yml
 docker/run.sh
+docker/cleanup.sh

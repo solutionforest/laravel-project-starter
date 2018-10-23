@@ -14,8 +14,11 @@ fi
 echo "Create Project [ $1 ] now"
 
 echo "Clean up files"
+docker-compose kill
 rm -rf ../db
 rm docker-compose.yml
+rm run.sh
+rm build-image.sh
 cp docker-compose-sample.yml docker-compose.yml
 
 echo "Generate APP_KEY for Laravel"
