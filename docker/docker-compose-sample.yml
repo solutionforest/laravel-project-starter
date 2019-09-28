@@ -25,7 +25,7 @@ services:
   __NAME__-redis:
     restart: always
     container_name: __NAME__-redis
-    image: redis:5.0-alpine
+    image: redis:5.0.4-alpine
     networks:
       - front
       - back

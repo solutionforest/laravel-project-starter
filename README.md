@@ -1,12 +1,12 @@
 # Laravel Start Kit
 ### A simple and easy to create a Laravel Project with docker
-###### We are using latest Laravel version 5.7.*
+###### We are using latest Laravel version 6.0.*
 
 ---
 
 ###### Docker including
 * richarvey/nginx-php-fpm:latest
-* redis:5.0-alpine
+* redis:5.0.4-alpine
 * bitnami/mariadb:latest
 * Dockerfile is base on "richarvey/nginx-php-fpm:latest" , optional to build your own image including your code.
 
