@@ -37,6 +37,12 @@ cd docker
 * then you can start your docker-compose
 * ``` docker-compose up -d ```
 * It will create a database, Redis, and the web service.
+
+```
+php artisan admin:install
+```
+* Run install laravel-admin db after webserver up
+* https://laravel-admin.org/docs/zh/installation
 ---
 
 Any problem, please contact alan@solutionforest.net
