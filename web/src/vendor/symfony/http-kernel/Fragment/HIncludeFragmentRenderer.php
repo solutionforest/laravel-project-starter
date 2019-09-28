@@ -36,7 +36,6 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
      * @param EngineInterface|Environment $templating            An EngineInterface or a Twig instance
      * @param UriSigner                   $signer                A UriSigner instance
      * @param string                      $globalDefaultTemplate The global default content (it can be a template name or the content)
-     * @param string                      $charset
      */
     public function __construct($templating = null, UriSigner $signer = null, string $globalDefaultTemplate = null, string $charset = 'utf-8')
     {
@@ -57,6 +56,10 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
     {
         if (null !== $templating && !$templating instanceof EngineInterface && !$templating instanceof Environment) {
             throw new \InvalidArgumentException('The hinclude rendering strategy needs an instance of Twig\Environment or Symfony\Component\Templating\EngineInterface');
+        }
+
+        if ($templating instanceof EngineInterface) {
+            @trigger_error(sprintf('Using a "%s" instance for "%s" is deprecated since version 4.3; use a \Twig\Environment instance instead.', EngineInterface::class, __CLASS__), E_USER_DEPRECATED);
         }
 
         $this->templating = $templating;
@@ -81,7 +84,7 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
      *  * id:         An optional hx:include tag id attribute
      *  * attributes: An optional array of hx:include tag attributes
      */
-    public function render($uri, Request $request, array $options = array())
+    public function render($uri, Request $request, array $options = [])
     {
         if ($uri instanceof ControllerReference) {
             if (null === $this->signer) {
@@ -102,7 +105,7 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
             $content = $template;
         }
 
-        $attributes = isset($options['attributes']) && \is_array($options['attributes']) ? $options['attributes'] : array();
+        $attributes = isset($options['attributes']) && \is_array($options['attributes']) ? $options['attributes'] : [];
         if (isset($options['id']) && $options['id']) {
             $attributes['id'] = $options['id'];
         }

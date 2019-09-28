@@ -2,18 +2,20 @@
 
 namespace Illuminate\View;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use InvalidArgumentException;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\View\Engines\EngineResolver;
-use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\View\Factory as FactoryContract;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Macroable;
+use Illuminate\View\Engines\EngineResolver;
+use InvalidArgumentException;
 
 class Factory implements FactoryContract
 {
-    use Concerns\ManagesComponents,
+    use Macroable,
+        Concerns\ManagesComponents,
         Concerns\ManagesEvents,
         Concerns\ManagesLayouts,
         Concerns\ManagesLoops,
@@ -64,6 +66,7 @@ class Factory implements FactoryContract
         'blade.php' => 'blade',
         'php' => 'php',
         'css' => 'file',
+        'html' => 'file',
     ];
 
     /**
@@ -305,7 +308,7 @@ class Factory implements FactoryContract
      * Add a piece of shared data to the environment.
      *
      * @param  array|string  $key
-     * @param  mixed  $value
+     * @param  mixed|null  $value
      * @return mixed
      */
     public function share($key, $value = null)
@@ -407,7 +410,7 @@ class Factory implements FactoryContract
      *
      * @param  string    $extension
      * @param  string    $engine
-     * @param  \Closure  $resolver
+     * @param  \Closure|null  $resolver
      * @return void
      */
     public function addExtension($extension, $engine, $resolver = null)

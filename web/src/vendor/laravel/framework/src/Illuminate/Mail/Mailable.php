@@ -2,19 +2,19 @@
 
 namespace Illuminate\Mail;
 
-use ReflectionClass;
-use ReflectionProperty;
-use Illuminate\Support\Str;
+use Illuminate\Container\Container;
+use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Contracts\Mail\Mailable as MailableContract;
+use Illuminate\Contracts\Mail\Mailer as MailerContract;
+use Illuminate\Contracts\Queue\Factory as Queue;
+use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
-use Illuminate\Container\Container;
-use Illuminate\Support\Traits\Localizable;
-use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
-use Illuminate\Contracts\Queue\Factory as Queue;
-use Illuminate\Contracts\Mail\Mailer as MailerContract;
-use Illuminate\Contracts\Mail\Mailable as MailableContract;
-use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Support\Traits\Localizable;
+use ReflectionClass;
+use ReflectionProperty;
 
 class Mailable implements MailableContract, Renderable
 {
@@ -147,10 +147,10 @@ class Mailable implements MailableContract, Renderable
      */
     public function send(MailerContract $mailer)
     {
-        $this->withLocale($this->locale, function () use ($mailer) {
+        return $this->withLocale($this->locale, function () use ($mailer) {
             Container::getInstance()->call([$this, 'build']);
 
-            $mailer->send($this->buildView(), $this->buildViewData(), function ($message) {
+            return $mailer->send($this->buildView(), $this->buildViewData(), function ($message) {
                 $this->buildFrom($message)
                      ->buildRecipients($message)
                      ->buildSubject($message)
@@ -553,7 +553,7 @@ class Mailable implements MailableContract, Renderable
     }
 
     /**
-     * Determine if the given recipient is set on the mailable.
+     * Determine if the given replyTo is set on the mailable.
      *
      * @param  object|array|string  $address
      * @param  string|null  $name
@@ -756,7 +756,7 @@ class Mailable implements MailableContract, Renderable
      * Attach a file to the message from storage.
      *
      * @param  string  $path
-     * @param  string  $name
+     * @param  string|null  $name
      * @param  array  $options
      * @return $this
      */
@@ -770,7 +770,7 @@ class Mailable implements MailableContract, Renderable
      *
      * @param  string  $disk
      * @param  string  $path
-     * @param  string  $name
+     * @param  string|null  $name
      * @param  array  $options
      * @return $this
      */

@@ -3,10 +3,10 @@
 namespace Illuminate\Pagination;
 
 use Closure;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
@@ -71,6 +71,13 @@ abstract class AbstractPaginator implements Htmlable
      * @var int
      */
     public $onEachSide = 3;
+
+    /**
+     * The paginator options.
+     *
+     * @var array
+     */
+    protected $options;
 
     /**
      * The current path resolver callback.
@@ -165,8 +172,8 @@ abstract class AbstractPaginator implements Htmlable
             $parameters = array_merge($this->query, $parameters);
         }
 
-        return $this->path
-                        .(Str::contains($this->path, '?') ? '&' : '?')
+        return $this->path()
+                        .(Str::contains($this->path(), '?') ? '&' : '?')
                         .Arr::query($parameters)
                         .$this->buildFragment();
     }
@@ -191,12 +198,16 @@ abstract class AbstractPaginator implements Htmlable
     /**
      * Add a set of query string values to the paginator.
      *
-     * @param  array|string  $key
+     * @param  array|string|null  $key
      * @param  string|null  $value
      * @return $this
      */
     public function appends($key, $value = null)
     {
+        if (is_null($key)) {
+            return $this;
+        }
+
         if (is_array($key)) {
             return $this->appendArray($key);
         }
@@ -390,6 +401,16 @@ abstract class AbstractPaginator implements Htmlable
     }
 
     /**
+     * Get the base path for paginator generated URLs.
+     *
+     * @return string|null
+     */
+    public function path()
+    {
+        return $this->path;
+    }
+
+    /**
      * Resolve the current request path or return the default value.
      *
      * @param  string  $default
@@ -557,6 +578,16 @@ abstract class AbstractPaginator implements Htmlable
         $this->items = $collection;
 
         return $this;
+    }
+
+    /**
+     * Get the paginator options.
+     *
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
     }
 
     /**

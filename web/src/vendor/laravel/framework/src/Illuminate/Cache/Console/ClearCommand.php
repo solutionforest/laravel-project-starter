@@ -2,11 +2,11 @@
 
 namespace Illuminate\Cache\Console;
 
-use Illuminate\Console\Command;
 use Illuminate\Cache\CacheManager;
+use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 class ClearCommand extends Command
 {
@@ -60,7 +60,7 @@ class ClearCommand extends Command
      */
     public function handle()
     {
-        $this->laravel['events']->fire(
+        $this->laravel['events']->dispatch(
             'cache:clearing', [$this->argument('store'), $this->tags()]
         );
 
@@ -72,7 +72,7 @@ class ClearCommand extends Command
             return $this->error('Failed to clear cache. Make sure you have the appropriate permissions.');
         }
 
-        $this->laravel['events']->fire(
+        $this->laravel['events']->dispatch(
             'cache:cleared', [$this->argument('store'), $this->tags()]
         );
 

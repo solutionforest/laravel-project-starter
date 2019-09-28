@@ -2,11 +2,11 @@
 
 namespace Illuminate\Http;
 
-use Illuminate\Support\Arr;
 use Illuminate\Container\Container;
-use Illuminate\Support\Traits\Macroable;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Traits\Macroable;
 use Symfony\Component\HttpFoundation\File\UploadedFile as SymfonyUploadedFile;
 
 class UploadedFile extends SymfonyUploadedFile
@@ -101,6 +101,16 @@ class UploadedFile extends SymfonyUploadedFile
         }
 
         return file_get_contents($this->getPathname());
+    }
+
+    /**
+     * Get the file's extension supplied by the client.
+     *
+     * @return string
+     */
+    public function clientExtension()
+    {
+        return $this->guessClientExtension();
     }
 
     /**

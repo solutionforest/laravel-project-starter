@@ -2,8 +2,8 @@
 
 namespace Illuminate\Routing;
 
-use Closure;
 use BadMethodCallException;
+use Closure;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 
@@ -186,7 +186,7 @@ class RouteRegistrar
         }
 
         if (in_array($method, $this->allowedAttributes)) {
-            if ($method == 'middleware') {
+            if ($method === 'middleware') {
                 return $this->attribute($method, is_array($parameters[0]) ? $parameters[0] : $parameters);
             }
 
