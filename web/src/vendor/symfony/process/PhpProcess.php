@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Process;
 
+use Symfony\Component\Process\Exception\LogicException;
 use Symfony\Component\Process\Exception\RuntimeException;
 
 /**
@@ -29,14 +30,14 @@ class PhpProcess extends Process
      * @param string|null $cwd     The working directory or null to use the working dir of the current PHP process
      * @param array|null  $env     The environment variables or null to use the same environment as the current PHP process
      * @param int         $timeout The timeout in seconds
+     * @param array|null  $php     Path to the PHP binary to use with any additional arguments
      */
-    public function __construct(string $script, string $cwd = null, array $env = null, int $timeout = 60)
+    public function __construct(string $script, string $cwd = null, array $env = null, int $timeout = 60, array $php = null)
     {
-        $executableFinder = new PhpExecutableFinder();
-        if (false === $php = $executableFinder->find(false)) {
-            $php = null;
-        } else {
-            $php = array_merge(array($php), $executableFinder->findArguments());
+        if (null === $php) {
+            $executableFinder = new PhpExecutableFinder();
+            $php = $executableFinder->find(false);
+            $php = false === $php ? null : array_merge([$php], $executableFinder->findArguments());
         }
         if ('phpdbg' === \PHP_SAPI) {
             $file = tempnam(sys_get_temp_dir(), 'dbg');
@@ -50,17 +51,17 @@ class PhpProcess extends Process
     }
 
     /**
-     * Sets the path to the PHP binary to use.
+     * {@inheritdoc}
      */
-    public function setPhpBinary($php)
+    public static function fromShellCommandline(string $command, string $cwd = null, array $env = null, $input = null, ?float $timeout = 60)
     {
-        $this->setCommandLine($php);
+        throw new LogicException(sprintf('The "%s()" method cannot be called when using "%s".', __METHOD__, self::class));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function start(callable $callback = null, array $env = array())
+    public function start(callable $callback = null, array $env = [])
     {
         if (null === $this->getCommandLine()) {
             throw new RuntimeException('Unable to find the PHP executable.');

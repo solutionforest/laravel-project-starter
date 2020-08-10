@@ -2,8 +2,8 @@
 
 namespace Illuminate\Routing;
 
-use Closure;
 use BadMethodCallException;
+use Closure;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 
@@ -111,6 +111,19 @@ class RouteRegistrar
     }
 
     /**
+     * Route an API resource to a controller.
+     *
+     * @param  string  $name
+     * @param  string  $controller
+     * @param  array  $options
+     * @return \Illuminate\Routing\PendingResourceRegistration
+     */
+    public function apiResource($name, $controller, array $options = [])
+    {
+        return $this->router->apiResource($name, $controller, $this->attributes + $options);
+    }
+
+    /**
      * Create a route group with shared attributes.
      *
      * @param  \Closure|string  $callback
@@ -186,7 +199,7 @@ class RouteRegistrar
         }
 
         if (in_array($method, $this->allowedAttributes)) {
-            if ($method == 'middleware') {
+            if ($method === 'middleware') {
                 return $this->attribute($method, is_array($parameters[0]) ? $parameters[0] : $parameters);
             }
 

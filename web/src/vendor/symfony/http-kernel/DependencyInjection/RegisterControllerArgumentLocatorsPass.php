@@ -34,22 +34,31 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
     private $resolverServiceId;
     private $controllerTag;
     private $controllerLocator;
+    private $notTaggedControllerResolverServiceId;
 
-    public function __construct(string $resolverServiceId = 'argument_resolver.service', string $controllerTag = 'controller.service_arguments', string $controllerLocator = 'argument_resolver.controller_locator')
+    public function __construct(string $resolverServiceId = 'argument_resolver.service', string $controllerTag = 'controller.service_arguments', string $controllerLocator = 'argument_resolver.controller_locator', string $notTaggedControllerResolverServiceId = 'argument_resolver.not_tagged_controller')
     {
         $this->resolverServiceId = $resolverServiceId;
         $this->controllerTag = $controllerTag;
         $this->controllerLocator = $controllerLocator;
+        $this->notTaggedControllerResolverServiceId = $notTaggedControllerResolverServiceId;
     }
 
     public function process(ContainerBuilder $container)
     {
-        if (false === $container->hasDefinition($this->resolverServiceId)) {
+        if (false === $container->hasDefinition($this->resolverServiceId) && false === $container->hasDefinition($this->notTaggedControllerResolverServiceId)) {
             return;
         }
 
         $parameterBag = $container->getParameterBag();
-        $controllers = array();
+        $controllers = [];
+
+        $publicAliases = [];
+        foreach ($container->getAliases() as $id => $alias) {
+            if ($alias->isPublic() && !$alias->isPrivate()) {
+                $publicAliases[(string) $alias][] = $id;
+            }
+        }
 
         foreach ($container->findTaggedServiceIds($this->controllerTag, true) as $id => $tags) {
             $def = $container->getDefinition($id);
@@ -72,14 +81,14 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
             $isContainerAware = $r->implementsInterface(ContainerAwareInterface::class) || is_subclass_of($class, AbstractController::class);
 
             // get regular public methods
-            $methods = array();
-            $arguments = array();
+            $methods = [];
+            $arguments = [];
             foreach ($r->getMethods(\ReflectionMethod::IS_PUBLIC) as $r) {
                 if ('setContainer' === $r->name && $isContainerAware) {
                     continue;
                 }
                 if (!$r->isConstructor() && !$r->isDestructor() && !$r->isAbstract()) {
-                    $methods[strtolower($r->name)] = array($r, $r->getParameters());
+                    $methods[strtolower($r->name)] = [$r, $r->getParameters()];
                 }
             }
 
@@ -89,7 +98,7 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
                     $autowire = true;
                     continue;
                 }
-                foreach (array('action', 'argument', 'id') as $k) {
+                foreach (['action', 'argument', 'id'] as $k) {
                     if (!isset($attributes[$k][0])) {
                         throw new InvalidArgumentException(sprintf('Missing "%s" attribute on tag "%s" %s for service "%s".', $k, $this->controllerTag, json_encode($attributes, JSON_UNESCAPED_UNICODE), $id));
                     }
@@ -119,10 +128,10 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
                 /** @var \ReflectionMethod $r */
 
                 // create a per-method map of argument-names to service/type-references
-                $args = array();
+                $args = [];
                 foreach ($parameters as $p) {
                     /** @var \ReflectionParameter $p */
-                    $type = $target = ProxyHelper::getTypeHint($r, $p, true);
+                    $type = ltrim($target = ProxyHelper::getTypeHint($r, $p), '\\');
                     $invalidBehavior = ContainerInterface::IGNORE_ON_INVALID_REFERENCE;
 
                     if (isset($arguments[$r->name][$p->name])) {
@@ -134,23 +143,23 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
                         } elseif ($p->allowsNull() && !$p->isOptional()) {
                             $invalidBehavior = ContainerInterface::NULL_ON_INVALID_REFERENCE;
                         }
-                    } elseif (isset($bindings[$bindingName = '$'.$p->name]) || isset($bindings[$bindingName = $type])) {
+                    } elseif (isset($bindings[$bindingName = $type.' $'.$p->name]) || isset($bindings[$bindingName = '$'.$p->name]) || isset($bindings[$bindingName = $type])) {
                         $binding = $bindings[$bindingName];
 
-                        list($bindingValue, $bindingId) = $binding->getValues();
-                        $binding->setValues(array($bindingValue, $bindingId, true));
+                        list($bindingValue, $bindingId, , $bindingType, $bindingFile) = $binding->getValues();
+                        $binding->setValues([$bindingValue, $bindingId, true, $bindingType, $bindingFile]);
 
                         if (!$bindingValue instanceof Reference) {
                             $args[$p->name] = new Reference('.value.'.$container->hash($bindingValue));
                             $container->register((string) $args[$p->name], 'mixed')
                                 ->setFactory('current')
-                                ->addArgument(array($bindingValue));
+                                ->addArgument([$bindingValue]);
                         } else {
                             $args[$p->name] = $bindingValue;
                         }
 
                         continue;
-                    } elseif (!$type || !$autowire) {
+                    } elseif (!$type || !$autowire || '\\' !== $target[0]) {
                         continue;
                     } elseif (!$p->allowsNull()) {
                         $invalidBehavior = ContainerInterface::RUNTIME_EXCEPTION_ON_INVALID_REFERENCE;
@@ -168,20 +177,37 @@ class RegisterControllerArgumentLocatorsPass implements CompilerPassInterface
                             $message .= ' Did you forget to add a use statement?';
                         }
 
-                        throw new InvalidArgumentException($message);
-                    }
+                        $container->register($erroredId = '.errored.'.$container->hash($message), $type)
+                            ->addError($message);
 
-                    $args[$p->name] = $type ? new TypedReference($target, $type, $invalidBehavior) : new Reference($target, $invalidBehavior);
+                        $args[$p->name] = new Reference($erroredId, ContainerInterface::RUNTIME_EXCEPTION_ON_INVALID_REFERENCE);
+                    } else {
+                        $target = ltrim($target, '\\');
+                        $args[$p->name] = $type ? new TypedReference($target, $type, $invalidBehavior, $p->name) : new Reference($target, $invalidBehavior);
+                    }
                 }
                 // register the maps as a per-method service-locators
                 if ($args) {
                     $controllers[$id.'::'.$r->name] = ServiceLocatorTagPass::register($container, $args);
+
+                    foreach ($publicAliases[$id] ?? [] as $alias) {
+                        $controllers[$alias.'::'.$r->name] = clone $controllers[$id.'::'.$r->name];
+                    }
                 }
             }
         }
 
-        $container->getDefinition($this->resolverServiceId)
-            ->replaceArgument(0, $controllerLocatorRef = ServiceLocatorTagPass::register($container, $controllers));
+        $controllerLocatorRef = ServiceLocatorTagPass::register($container, $controllers);
+
+        if ($container->hasDefinition($this->resolverServiceId)) {
+            $container->getDefinition($this->resolverServiceId)
+                ->replaceArgument(0, $controllerLocatorRef);
+        }
+
+        if ($container->hasDefinition($this->notTaggedControllerResolverServiceId)) {
+            $container->getDefinition($this->notTaggedControllerResolverServiceId)
+                ->replaceArgument(0, $controllerLocatorRef);
+        }
 
         $container->setAlias($this->controllerLocator, (string) $controllerLocatorRef);
     }

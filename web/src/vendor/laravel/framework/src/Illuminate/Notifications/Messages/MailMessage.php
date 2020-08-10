@@ -2,10 +2,13 @@
 
 namespace Illuminate\Notifications\Messages;
 
-use Traversable;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Mail\Markdown;
+use Traversable;
 
-class MailMessage extends SimpleMessage
+class MailMessage extends SimpleMessage implements Renderable
 {
     /**
      * The view to be rendered.
@@ -13,6 +16,13 @@ class MailMessage extends SimpleMessage
      * @var array|string
      */
     public $view;
+
+    /**
+     * The plain text view to use for the message.
+     *
+     * @var string
+     */
+    public $textView;
 
     /**
      * The view data for the message.
@@ -27,6 +37,13 @@ class MailMessage extends SimpleMessage
      * @var string|null
      */
     public $markdown = 'notifications::email';
+
+    /**
+     * The current theme being used when generating emails.
+     *
+     * @var string|null
+     */
+    public $theme;
 
     /**
      * The "from" information for the message.
@@ -78,6 +95,13 @@ class MailMessage extends SimpleMessage
     public $priority;
 
     /**
+     * The callbacks for the message.
+     *
+     * @var array
+     */
+    public $callbacks = [];
+
+    /**
      * Set the view for the mail message.
      *
      * @param  array|string  $view
@@ -87,9 +111,24 @@ class MailMessage extends SimpleMessage
     public function view($view, array $data = [])
     {
         $this->view = $view;
-        $this->viewData = $data;
+        $this->viewData = array_merge($this->viewData, $data);
 
         $this->markdown = null;
+
+        return $this;
+    }
+
+    /**
+     * Set the plain text view for the message.
+     *
+     * @param  string  $textView
+     * @param  array  $data
+     * @return $this
+     */
+    public function text($textView, array $data = [])
+    {
+        $this->textView = $textView;
+        $this->viewData = array_merge($this->viewData, $data);
 
         return $this;
     }
@@ -120,6 +159,19 @@ class MailMessage extends SimpleMessage
     public function template($template)
     {
         $this->markdown = $template;
+
+        return $this;
+    }
+
+    /**
+     * Set the theme to use with the Markdown template.
+     *
+     * @param  string  $theme
+     * @return $this
+     */
+    public function theme($theme)
+    {
+        $this->theme = $theme;
 
         return $this;
     }
@@ -270,5 +322,37 @@ class MailMessage extends SimpleMessage
         return is_array($address) ||
                $address instanceof Arrayable ||
                $address instanceof Traversable;
+    }
+
+    /**
+     * Render the mail notification message into an HTML string.
+     *
+     * @return string
+     */
+    public function render()
+    {
+        if (isset($this->view) || isset($this->textView)) {
+            return Container::getInstance()->make('mailer')->render(
+                [$this->view, $this->textView],
+                $this->data()
+            );
+        }
+
+        return Container::getInstance()
+            ->make(Markdown::class)
+            ->render($this->markdown, $this->data());
+    }
+
+    /**
+     * Register a callback to be called with the Swift message instance.
+     *
+     * @param  callable  $callback
+     * @return $this
+     */
+    public function withSwiftMessage($callback)
+    {
+        $this->callbacks[] = $callback;
+
+        return $this;
     }
 }
