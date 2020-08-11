@@ -37,6 +37,8 @@ cd docker
 * then you can start your docker-compose
 * ``` docker-compose up -d ```
 * It will create a database, Redis, and the web service.
+* Install the packages after you get in to the web service container
+* ``` composer install```
 ---
 
 Any problem, please contact alan@solutionforest.net
