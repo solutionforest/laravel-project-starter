@@ -27,7 +27,7 @@ To use it, simply:
 * 
 ```sh
 
-cd laravel-project-starter
+cd laravel-project-starter-7.0
 
 cd docker
 
