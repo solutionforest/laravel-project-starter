@@ -1,6 +1,6 @@
 # Laravel Start Kit
 ### A simple and easy to create a Laravel Project with docker
-###### We are using latest Laravel version 7.xx
+###### We are using latest Laravel version 8.xx
 
 ---
 
@@ -40,5 +40,8 @@ cd docker
 * Install the packages after you get in to the web service container
 * ``` composer install```
 ---
+
+* laravel paginator is now default to use Tailwind CSS, please uncomment the "Paginator::useBootstrap();" at "AppServiceProvider" if you want to use the boostrap style
+
 
 Any problem, please contact alan@solutionforest.net
