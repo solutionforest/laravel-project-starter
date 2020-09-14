@@ -42,6 +42,7 @@ cd docker
 ---
 
 * laravel paginator is now default to use Tailwind CSS, please uncomment the "Paginator::useBootstrap();" at "AppServiceProvider" if you want to use the boostrap style
+---
 
 
 Any problem, please contact alan@solutionforest.net
